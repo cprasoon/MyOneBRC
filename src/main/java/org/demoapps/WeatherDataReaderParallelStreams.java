@@ -1,46 +1,51 @@
 package org.demoapps;
 
-import org.apache.commons.lang3.time.StopWatch;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class WeatherDataReaderParallelStreams {
+    private static final Logger LOGGER = Logger.getLogger(WeatherDataReaderParallelStreams.class.getName());
     ConcurrentSkipListSet<String> names = new ConcurrentSkipListSet<>();
     ConcurrentHashMap<String, WeatherData> weatherDataHashMap = new ConcurrentHashMap<>();
-    private String pathname;
-
-    WeatherDataReaderParallelStreams(String path) {
-        this.pathname = path;
-    }
 
     public static void main(String[] args) {
-        StopWatch stopWatch = new StopWatch();
+        String filePath = "C:\\dev\\workspace\\base\\intellij\\1brcRepoClone\\1brc\\measurements.txt";
+        waitForUserInput();
+        Date start = new Date();
+        new WeatherDataReaderParallelStreams().readData(filePath);
+        Date end = new Date();
+        printTimeDiff(start, end);
+    }
+
+    private static void waitForUserInput() {
         try {
-            System.out.println("Please press enter once ready:");
+            LOGGER.log(Level.INFO, "Please press enter once ready:");
             new Scanner(System.in).nextLine();
         } catch (Exception e) {
             throw new MyRuntimeException(e);
         }
-        stopWatch.start();
-        new WeatherDataReaderParallelStreams("C:\\dev\\workspace\\base\\intellij\\1brcRepoClone\\1brc\\measurements.txt").readData();
-        stopWatch.stop();
-        System.out.println("Completed in:" + stopWatch.formatTime());
     }
 
-    private void readData() {
-        File file = new File(pathname);
-        try (Stream<String> text = Files.lines(file.toPath());) {
+    private void readData(String path) {
+        File file = new File(path);
+        try (Stream<String> text = Files.lines(file.toPath())) {
             text.parallel().forEach(this::processData);
         } catch (IOException e) {
             throw new MyRuntimeException(e);
         } finally {
-            names.forEach(x -> System.out.println(x + "=" + weatherDataHashMap.get(x).toString() + ","));
+            List<String> listOut = names.stream().map(x -> String.format("%s=%s", x, weatherDataHashMap.get(x).toString())).toList();
+            String output = listOut.toString();
+            LOGGER.log(Level.INFO, output);
         }
     }
 
@@ -61,5 +66,16 @@ public class WeatherDataReaderParallelStreams {
                 }
             }
         }
+    }
+
+    private static void printTimeDiff(Date start, Date end) {
+        Duration duration = Duration.between(start.toInstant(), end.toInstant());
+        String output = String.format("%02d:%02d:%02d.%03d",
+                duration.toHoursPart(),
+                duration.toMinutesPart(),
+                duration.toSecondsPart(),
+                duration.toMillisPart()
+        );
+        LOGGER.log(Level.INFO, output);
     }
 }

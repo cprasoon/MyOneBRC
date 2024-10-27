@@ -9,6 +9,12 @@ repositories {
     mavenCentral()
 }
 
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 dependencies {
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
     testImplementation platform('org.junit:junit-bom:5.10.0')
@@ -16,5 +22,6 @@ dependencies {
 }
 
 test {
+    systemProperty "file.encoding", "utf-8"
     useJUnitPlatform()
 }
