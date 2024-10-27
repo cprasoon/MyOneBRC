@@ -1,6 +1,9 @@
 # MyOneBRC
 Attempting to write clean and simple 1BRC challenge code and optimize it, 
 
+Original Challenge: https://github.com/gunnarmorling/1brc
+Use same to get baseline results
+
 Initially will use simple Apache Commons Stop Watch to understand performance difference
 
 PS: 
